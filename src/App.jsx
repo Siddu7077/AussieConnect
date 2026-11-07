@@ -1,7 +1,10 @@
-import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Routes, Route, NavLink, Navigate, Link } from 'react-router-dom';
 import PostsFeed from './pages/PostsFeed.jsx';
 import QnA from './pages/QnA.jsx';
 import Admin from './pages/Admin.jsx';
+
+const LOGO = `${import.meta.env.BASE_URL}logo.png`; // = /logo.png (file lives in client/public/)
 
 const base = {
   stroke: 'currentColor',
@@ -38,17 +41,36 @@ const NAV = [
   { to: '/admin', label: 'Admin', Icon: AdminIcon },
 ];
 
+function Logo() {
+  const [failed, setFailed] = useState(false);
+  return (
+    <Link to="/" className="flex items-center gap-2.5" aria-label="Aussie Connect home">
+      {failed ? (
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-lg shadow-md shadow-emerald-500/30">
+          🦘
+        </span>
+      ) : (
+        <img
+          src={LOGO}
+          alt="Aussie Connect logo"
+          onError={() => setFailed(true)}
+          className="h-9 w-9 rounded-xl object-contain"
+        />
+      )}
+      {/* Delete this h1 if your logo already contains the name */}
+      <h1 className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-xl font-extrabold tracking-tight text-transparent">
+        Aussie Connect
+      </h1>
+    </Link>
+  );
+}
+
 export default function App() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-gray-200/70 bg-white/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl items-center gap-2.5 px-4 py-3 sm:px-6">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-lg shadow-md shadow-emerald-500/30">
-            🦘
-          </span>
-          <h1 className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-xl font-extrabold tracking-tight text-transparent">
-            Aussie Connect
-          </h1>
+        <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
+          <Logo />
         </div>
       </header>
 

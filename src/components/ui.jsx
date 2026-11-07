@@ -24,15 +24,21 @@ export function Avatar({ name = '?', size = 'h-10 w-10', ring = false, brand = f
   return (
     <span className={`inline-flex shrink-0 rounded-full ${size} ${ring ? `${RING} p-[2px]` : ''} ${className}`}>
       <span
-        className={`flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br ${bg} text-[0.85em] font-bold text-white ${
+        className={`flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-gradient-to-br ${bg} text-[0.85em] font-bold text-white ${
           ring ? 'ring-2 ring-white' : ''
         }`}
       >
-        {initial}
+        {brand ? (
+          <img src="/logo.png" alt="" className="h-full w-full bg-white object-contain p-0.5" />
+        ) : (
+          initial
+        )}
       </span>
     </span>
   );
 }
+
+
 
 export function timeAgo(s) {
   const d = new Date(String(s).replace(' ', 'T'));
