@@ -3,28 +3,33 @@ import { api, clearToken, getToken, setToken } from '../api/client.js';
 import { Loading } from './Status.jsx';
 
 const card = 'mx-auto mt-8 max-w-sm rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-gray-100';
+const inputCls =
+  'w-full rounded-2xl border-0 bg-gray-100 px-4 py-3 text-sm outline-none ring-emerald-500 focus:bg-white focus:ring-2';
 const Lock = () => (
   <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-2xl shadow-lg shadow-emerald-500/30">
     🔐
   </div>
 );
 
-// Usage: <AdminGate>{(logout) => <Panel onLogout={logout} />}</AdminGate>
+// Usage: <AdminGate>{(logout, admin) => <Panel onLogout={logout} me={admin} />}</AdminGate>
 export default function AdminGate({ children }) {
   const [status, setStatus] = useState(getToken() ? 'checking' : 'locked'); // checking | locked | error | ok
-  const [input, setInput] = useState('');
+  const [admin, setAdmin] = useState(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  // Admin-only endpoint doubles as a token check: 401 = wrong token
+  // Validate a saved token
   const verify = useCallback(async () => {
     try {
-      await api('questions.php');
+      setAdmin(await api('login.php'));
       setError('');
       setStatus('ok');
     } catch (e) {
       if (e.status === 401) {
         clearToken();
-        setError('That token was not accepted.');
+        setError('Your session has expired. Please sign in again.');
         setStatus('locked');
       } else {
         setError(e.message);
@@ -37,12 +42,13 @@ export default function AdminGate({ children }) {
 
   const logout = useCallback(() => {
     clearToken();
-    setInput('');
+    setAdmin(null);
+    setPassword('');
     setError('');
     setStatus('locked');
   }, []);
 
-  if (status === 'ok') return children(logout);
+  if (status === 'ok') return children(logout, admin);
   if (status === 'checking') return <Loading label="Checking access…" />;
 
   if (status === 'error') {
@@ -61,30 +67,50 @@ export default function AdminGate({ children }) {
     );
   }
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
-    setToken(input.trim());
-    setStatus('checking');
-    verify();
+    setBusy(true);
+    setError('');
+    clearToken();
+    try {
+      const res = await api('login.php', { method: 'POST', json: { email: email.trim(), password } });
+      setToken(res.token);
+      setAdmin(res.admin);
+      setPassword('');
+      setStatus('ok');
+    } catch (e2) {
+      setError(e2.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <form onSubmit={submit} className={`${card} space-y-3`}>
       <Lock />
-      <h2 className="text-xl font-extrabold">Admin access</h2>
-      <p className="text-xs text-gray-400">Enter your admin token to continue.</p>
+      <h2 className="text-xl font-extrabold">Admin sign in</h2>
+      <p className="text-xs text-gray-400">Use your admin email and password.</p>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        autoComplete="username"
+        required
+        className={inputCls}
+      />
       <input
         type="password"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Admin token"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
         autoComplete="current-password"
         required
-        className="w-full rounded-2xl border-0 bg-gray-100 px-4 py-3 text-center text-sm outline-none ring-emerald-500 focus:bg-white focus:ring-2"
+        className={inputCls}
       />
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-      <button className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 font-bold text-white shadow-lg shadow-emerald-500/30 active:scale-[0.98]">
-        Unlock
+      <button disabled={busy} className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 py-3 font-bold text-white shadow-lg shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-60">
+        {busy ? 'Signing in…' : 'Sign in'}
       </button>
     </form>
   );

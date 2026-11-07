@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import ReactionBar from './ReactionBar.jsx';
+import Comments from './Comments.jsx';
 import { Avatar, BigHeart, Verified, grad, timeAgo } from './ui.jsx';
 
 export default function PostCard({ post }) {
@@ -61,6 +62,7 @@ export default function PostCard({ post }) {
             </button>
           )}
         </div>
+        <Comments target="post" targetId={post.id} initial={post.comments || []} />
       </div>
     </article>
   );
