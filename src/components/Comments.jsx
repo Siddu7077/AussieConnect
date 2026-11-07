@@ -68,6 +68,32 @@ function CommentForm({ target, targetId, onAdded }) {
   );
 }
 
+// List + form, state owned by the parent
+export function CommentThread({ target, targetId, list, onAdded }) {
+  return (
+    <div className="animate-fade-in">
+      {list.length === 0 ? (
+        <p className="text-sm text-gray-400">No comments yet. Start the conversation!</p>
+      ) : (
+        <ul className="space-y-3">
+          {list.map((c) => (
+            <li key={c.id} className="flex gap-2.5">
+              <Avatar name={c.user_name} size="h-8 w-8" />
+              <div className="min-w-0 rounded-2xl rounded-tl-md bg-gray-100 px-3.5 py-2 text-sm">
+                <p className="font-bold">
+                  {c.user_name} <span className="ml-1 text-xs font-normal text-gray-400">{timeAgo(c.created_at)}</span>
+                </p>
+                <p className="whitespace-pre-line break-words text-gray-700">{c.comment_text}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <CommentForm target={target} targetId={targetId} onAdded={onAdded} />
+    </div>
+  );
+}
+
 // target: 'post' | 'answer'
 export default function Comments({ target, targetId, initial = [] }) {
   const [open, setOpen] = useState(false);
@@ -86,27 +112,9 @@ export default function Comments({ target, targetId, initial = [] }) {
           <path d="m6 9 6 6 6-6" />
         </svg>
       </button>
-
       {open && (
-        <div className="mt-3 animate-fade-in">
-          {list.length === 0 ? (
-            <p className="text-sm text-gray-400">No comments yet. Start the conversation!</p>
-          ) : (
-            <ul className="space-y-3">
-              {list.map((c) => (
-                <li key={c.id} className="flex gap-2.5">
-                  <Avatar name={c.user_name} size="h-8 w-8" />
-                  <div className="min-w-0 rounded-2xl rounded-tl-md bg-gray-100 px-3.5 py-2 text-sm">
-                    <p className="font-bold">
-                      {c.user_name} <span className="ml-1 text-xs font-normal text-gray-400">{timeAgo(c.created_at)}</span>
-                    </p>
-                    <p className="whitespace-pre-line break-words text-gray-700">{c.comment_text}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-          <CommentForm target={target} targetId={targetId} onAdded={(c) => setList((l) => [...l, c])} />
+        <div className="mt-3">
+          <CommentThread target={target} targetId={targetId} list={list} onAdded={(c) => setList((l) => [...l, c])} />
         </div>
       )}
     </div>

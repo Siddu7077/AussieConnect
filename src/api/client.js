@@ -55,3 +55,55 @@ export async function api(path, { method = 'GET', json, form } = {}) {
   }
   return data;
 }
+
+// ---------- Saved posts (per device) ----------
+const SAVED_KEY = 'ac_saved';
+export function getSaved() {
+  try { return JSON.parse(store.get(SAVED_KEY) || '[]'); } catch { return []; }
+}
+export function toggleSaved(id) {
+  const list = getSaved();
+  const next = list.includes(id) ? list.filter((x) => x !== id) : [id, ...list];
+  store.set(SAVED_KEY, JSON.stringify(next));
+  window.dispatchEvent(new Event('ac-saved'));
+  return next.includes(id);
+}
+
+// ---------- Chat memberships: { [slug]: { token, id, name } } ----------
+const CHAT_KEY = 'ac_chats';
+const READ_KEY = 'ac_chat_read';
+const readJSON = (k) => { try { return JSON.parse(store.get(k) || '{}'); } catch { return {}; } };
+export const getMemberships = () => readJSON(CHAT_KEY);
+export const getMembership = (slug) => getMemberships()[slug] || null;
+export function setMembership(slug, m) {
+  const all = getMemberships();
+  if (m) all[slug] = m; else delete all[slug];
+  store.set(CHAT_KEY, JSON.stringify(all));
+}
+export const getLastRead = (slug) => readJSON(READ_KEY)[slug] || 0;
+export function setLastRead(slug, id) {
+  const all = readJSON(READ_KEY);
+  if ((all[slug] || 0) >= id) return;
+  all[slug] = id;
+  store.set(READ_KEY, JSON.stringify(all));
+}
+
+// ---------- Share ----------
+export async function sharePost(post) {
+  const url = `${window.location.origin}/p/${post.id}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: post.title, text: post.title, url });
+      return 'shared';
+    } catch (e) {
+      if (e?.name === 'AbortError') return 'cancelled';
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    return 'copied';
+  } catch {
+    window.prompt('Copy this link:', url);
+    return 'copied';
+  }
+}

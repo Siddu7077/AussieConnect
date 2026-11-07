@@ -10,7 +10,7 @@ export default function useFetch(path) {
     setState((s) => ({ ...s, loading: true, error: null }));
     api(path)
       .then((data) => alive && setState({ data, loading: false, error: null }))
-      .catch((error) => alive && setState({ data: null, loading: false, error }));
+      .catch((error) => alive && setState((s) => ({ data: s.data, loading: false, error })));
     return () => { alive = false; };
   }, [path, tick]);
 

@@ -29,7 +29,7 @@ export function Avatar({ name = '?', size = 'h-10 w-10', ring = false, brand = f
         }`}
       >
         {brand ? (
-          <img src="/logo.png" alt="" className="h-full w-full bg-white object-contain p-0.5" />
+          <img src="/logo-icon.webp" alt="" className="h-full w-full bg-white object-cover" />
         ) : (
           initial
         )}

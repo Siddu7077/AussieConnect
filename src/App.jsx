@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { Routes, Route, NavLink, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, NavLink, Navigate, Link, useMatch } from 'react-router-dom';
 import PostsFeed from './pages/PostsFeed.jsx';
 import QnA from './pages/QnA.jsx';
 import Admin from './pages/Admin.jsx';
+import ChatList from './pages/ChatList.jsx';
+import ChatRoom from './pages/ChatRoom.jsx';
+import Saved from './pages/Saved.jsx';
+import PostPage from './pages/PostPage.jsx';
+import { ToastProvider } from './components/Toast.jsx';
 
-const LOGO = `${import.meta.env.BASE_URL}logo.png`; // = /logo.png (file lives in client/public/)
+const LOGO = `${import.meta.env.BASE_URL}logo-icon.webp`; // emblem cropped from design/logo-original.png
 
 const base = {
   stroke: 'currentColor',
@@ -35,9 +40,23 @@ const AdminIcon = ({ active }) => (
   </svg>
 );
 
+const ChatIcon = ({ active }) => (
+  <svg viewBox="0 0 24 24" {...base}>
+    <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H9l-5 4V5.5Z" {...fillProps(active)} />
+    <path d="M8 9h8M8 12h5" fill="none" />
+  </svg>
+);
+const SavedIcon = ({ active }) => (
+  <svg viewBox="0 0 24 24" {...base}>
+    <path d="M18 21 12 16.5 6 21V4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21Z" {...fillProps(active)} />
+  </svg>
+);
+
 const NAV = [
   { to: '/', label: 'Home', Icon: HomeIcon, end: true },
+  { to: '/chat', label: 'Chats', Icon: ChatIcon },
   { to: '/questions', label: 'Q&A', Icon: QAIcon },
+  { to: '/saved', label: 'Saved', Icon: SavedIcon },
   { to: '/admin', label: 'Admin', Icon: AdminIcon },
 ];
 
@@ -54,7 +73,7 @@ function Logo() {
           src={LOGO}
           alt="Aussie Connect logo"
           onError={() => setFailed(true)}
-          className="h-9 w-9 rounded-xl object-contain"
+          className="h-10 w-10 rounded-full bg-white object-cover ring-1 ring-gray-200"
         />
       )}
       {/* Delete this h1 if your logo already contains the name */}
@@ -67,6 +86,18 @@ function Logo() {
 
 export default function App() {
   return (
+    <ToastProvider>
+      <Shell />
+    </ToastProvider>
+  );
+}
+
+function Shell() {
+  // A chat room takes over the whole screen, like Telegram/WhatsApp
+  const room = useMatch('/chat/:slug');
+  if (room) return <ChatRoom key={room.params.slug} slug={room.params.slug} />;
+
+  return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-gray-200/70 bg-white/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center px-4 py-3 sm:px-6">
@@ -77,7 +108,10 @@ export default function App() {
       <main className="mx-auto max-w-5xl px-4 pb-32 pt-4 sm:px-6">
         <Routes>
           <Route path="/" element={<PostsFeed />} />
+          <Route path="/chat" element={<ChatList />} />
           <Route path="/questions" element={<QnA />} />
+          <Route path="/saved" element={<Saved />} />
+          <Route path="/p/:id" element={<PostPage />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -87,7 +121,7 @@ export default function App() {
         aria-label="Primary"
         className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
       >
-        <ul className="pointer-events-auto flex w-full max-w-sm gap-1 rounded-full bg-white/90 p-1.5 shadow-xl shadow-emerald-900/10 ring-1 ring-black/5 backdrop-blur-xl">
+        <ul className="pointer-events-auto flex w-full max-w-md gap-0.5 rounded-full bg-white/90 p-1.5 shadow-xl shadow-emerald-900/10 ring-1 ring-black/5 backdrop-blur-xl">
           {NAV.map(({ to, label, Icon, end }) => (
             <li key={to} className="flex-1">
               <NavLink

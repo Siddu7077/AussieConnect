@@ -11,3 +11,14 @@ body {
 
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+/* Telegram-like chat wallpaper */
+.chat-bg {
+  background-color: #dfe8d6;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.35) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 80%, rgba(255,255,255,.3) 0 1.5px, transparent 2.5px),
+    linear-gradient(160deg, #d5e6c9 0%, #e3e9d3 45%, #cfe1d8 100%);
+  background-size: 46px 46px, 34px 34px, 100% 100%;
+}
+@keyframes msg-flash { 0%, 60% { background-color: rgba(16,185,129,.22); } 100% { background-color: transparent; } }
+.msg-flash { animation: msg-flash 1.6s ease-out; }
